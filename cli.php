@@ -21,9 +21,13 @@ trait Close
 
 final class Rounds 
 {
+    const WELCOME_MESSAGE = 'Добро пожаловать в игру Угадай Число!';
+    
     private static $rounds = array ();
 
     public static function start () {
+        echo self::WELCOME_MESSAGE, PHP_EOL;
+
         $types = getSubclasses ('Mode');
         $select_type = NULL;
 
@@ -32,7 +36,7 @@ final class Rounds
                 $select_type = $types[0];
                 goto skip_select_mode;
             else:
-                echo 'Нету доступных режимов игры';
+                echo 'Нету доступных режимов игры =(';
                 return;
             endif;
 
@@ -71,10 +75,6 @@ abstract class Mode
 }
 
 class Standart extends Mode
-{
-}
-
-class Standart2 extends Mode
 {
 }
 
