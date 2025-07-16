@@ -28,47 +28,14 @@ final class Rounds
     public static function start () {
         echo self::WELCOME_MESSAGE, PHP_EOL;
 
-        $types = getSubclasses ('Mode');
+        $select_mode = Mode::selectMode();
 
-        $select_type = NULL;
+        if ($select_mode == false):
+            echo 'Нету доступных режимов игры.';
 
-        if (count($types) < 2)
-            if (count($types) == 1):
-                $select_type = $types[0];
+            return;
+        endif;
 
-                goto skip_select_mode;
-            else:
-                echo 'Нету доступных режимов игры.';
-
-                return;
-            endif;
-
-        echo 'Выберите режим:', PHP_EOL;
-
-        for ($i = 0; $i < count ($types); $i ++)
-        {
-            $type = $types [$i];
-
-            echo $i + 1, '. ', $type, PHP_EOL;
-        }
-
-        do {
-            fscanf(STDIN, "%d\n", $index);
-
-            $index--;
-
-            if (!empty (array_key_exists ($index, $types))):
-                $select_type = $types[$index];
-
-                echo "Выбран режим $types[$index]", PHP_EOL;
-
-                break;
-            else:
-                echo 'Режима с таким номером не существует.', PHP_EOL;
-            endif;
-        } while (true);
-
-        skip_select_mode:
 
         // $difficulties = getSubclasses ('Difficulty');
     }
@@ -79,9 +46,54 @@ final class Rounds
 abstract class Mode
 {
 
-    public function selectType () 
+    public static function selectMode () 
     {
+        $modes = getSubclasses ('Mode');
 
+        $select_mode = NULL;
+
+        if (count($modes) < 2)
+            if (count($modes) == 1):
+                $select_mode = $modes[0];
+
+                goto skip_select_mode;
+            else:
+                return false;
+            endif;
+
+        do {
+            echo 'Выберите режим игры:', PHP_EOL;
+
+            self::displayModes($modes);
+
+            fscanf(STDIN, "%d\n", $index);
+
+            $index--;
+
+            if (!empty (array_key_exists ($index, $modes))):
+                $select_mode = $modes[$index];
+
+                echo "Выбран режим $modes[$index]", PHP_EOL;
+
+                break;
+            endif;
+        } while (true);
+
+        skip_select_mode:
+
+        $mode = new $select_mode;
+
+        return $mode;
+    }
+
+    public static function displayModes (array $modes)
+    {
+        for ($i = 0; $i < count ($modes); $i ++)
+        {
+            $mode = $modes [$i];
+
+            echo $i + 1, '. ', $mode, PHP_EOL;
+        }
     }
 }
 
