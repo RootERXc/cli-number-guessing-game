@@ -29,14 +29,17 @@ final class Rounds
         echo self::WELCOME_MESSAGE, PHP_EOL;
 
         $types = getSubclasses ('Mode');
+
         $select_type = NULL;
 
         if (count($types) < 2)
             if (count($types) == 1):
                 $select_type = $types[0];
+
                 goto skip_select_mode;
             else:
-                echo 'Нету доступных режимов игры =(';
+                echo 'Нету доступных режимов игры.';
+
                 return;
             endif;
 
@@ -49,9 +52,23 @@ final class Rounds
             echo $i + 1, '. ', $type, PHP_EOL;
         }
 
-        skip_select_mode:
+        do {
+            fscanf(STDIN, "%d\n", $index);
 
-        echo $select_type;
+            $index--;
+
+            if (!empty (array_key_exists ($index, $types))):
+                $select_type = $types[$index];
+
+                echo "Выбран режим $types[$index]", PHP_EOL;
+
+                break;
+            else:
+                echo 'Режима с таким номером не существует.', PHP_EOL;
+            endif;
+        } while (true);
+
+        skip_select_mode:
 
         // $difficulties = getSubclasses ('Difficulty');
     }
@@ -61,12 +78,6 @@ final class Rounds
 
 abstract class Mode
 {
-    // public static function start ()
-    // {
-    //     $round = new static ();
-
-    //     self::$rounds = [];
-    // }
 
     public function selectType () 
     {
@@ -75,6 +86,10 @@ abstract class Mode
 }
 
 class Standart extends Mode
+{
+}
+
+class Standart2 extends Mode
 {
 }
 
@@ -117,8 +132,3 @@ function getSubclasses ($class)
 }
 
 Rounds::start();
-
-// var_dump(getSubclasses ('Difficulty'));
-
-// $test = new Round ();
-// Round::start ();
