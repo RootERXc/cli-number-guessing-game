@@ -1,5 +1,4 @@
 <?
-
 trait Close 
 {
     private function __construct ()
@@ -25,19 +24,32 @@ final class Rounds
     
     private static $rounds = array ();
 
-    public static function start () {
-        echo self::WELCOME_MESSAGE, PHP_EOL;
+    public static function prepare () {
+        echo self::WELCOME_MESSAGE, PHP_EOL, PHP_EOL;
 
-        $select_mode = Mode::selectMode();
+        $round = array ();
 
-        if ($select_mode == false):
-            echo 'Нету доступных режимов игры.';
+        $mode = Mode::selectMode();
+
+        if (!($mode instanceof Mode)):
+            echo 'Выбор режима игры недоступен.', PHP_EOL;
 
             return;
         endif;
 
+        $round['mode'] = $mode;
 
-        // $difficulties = getSubclasses ('Difficulty');
+        $difficulty = Difficulty::selectDifficulty();
+
+        if (!($difficulty instanceof Difficulty)):
+            echo 'Выбор сложности игры недоступен.', PHP_EOL;
+
+            return;
+        endif;
+
+        $round['difficulty'] = $difficulty;
+
+        var_dump($round);
     }
 
     use Close;
@@ -45,8 +57,9 @@ final class Rounds
 
 abstract class Mode
 {
+    abstract protected function start ();
 
-    public static function selectMode () 
+    final public static function selectMode (): ?Mode
     {
         $modes = getSubclasses ('Mode');
 
@@ -58,26 +71,26 @@ abstract class Mode
 
                 goto skip_select_mode;
             else:
-                return false;
+                return null;
             endif;
 
-        do {
+        do 
+        {
             echo 'Выберите режим игры:', PHP_EOL;
 
             self::displayModes($modes);
 
-            fscanf(STDIN, "%d\n", $index);
-
-            $index--;
+            $index = (int) trim(fgets(STDIN)) - 1;
 
             if (!empty (array_key_exists ($index, $modes))):
                 $select_mode = $modes[$index];
 
-                echo "Выбран режим $modes[$index]", PHP_EOL;
+                echo PHP_EOL, "Выбран режим $modes[$index]", PHP_EOL, PHP_EOL;
 
                 break;
             endif;
-        } while (true);
+        } 
+        while (true);
 
         skip_select_mode:
 
@@ -90,7 +103,7 @@ abstract class Mode
     {
         for ($i = 0; $i < count ($modes); $i ++)
         {
-            $mode = $modes [$i];
+            $mode = $modes[$i];
 
             echo $i + 1, '. ', $mode, PHP_EOL;
         }
@@ -99,19 +112,77 @@ abstract class Mode
 
 class Standart extends Mode
 {
+    private int $random_number;
+
+    public function __construct ()
+    {
+        $this->random_number = rand (1, 100);
+    }
+
+    protected function start ()
+    {
+    }
 }
 
 class Standart2 extends Mode
 {
+    protected function start ()
+    {
+    }
 }
 
 abstract class Difficulty
 {
     protected int $chances = 1;
 
-    public function selectDifficulty () 
+    final public static function selectDifficulty (): ?Difficulty
     {
+        $difficulties = getSubclasses ('Difficulty');
 
+        $select_difficulty = NULL;
+
+        if (count($difficulties) < 2)
+            if (count($difficulties) == 1):
+                $select_difficulty = $difficulties[0];
+
+                goto skip_select_mode;
+            else:
+                return null;
+            endif;
+
+        do 
+        {
+            echo 'Выберите сложность игры:', PHP_EOL;
+
+            self::displayDifficulties($difficulties);
+
+            $index = (int) trim(fgets(STDIN)) - 1;
+
+            if (!empty (array_key_exists ($index, $difficulties))):
+                $select_difficulty = $difficulties[$index];
+
+                echo PHP_EOL, "Выбрана сложность $difficulties[$index]", PHP_EOL, PHP_EOL;
+
+                break;
+            endif;
+        } 
+        while (true);
+
+        skip_select_mode:
+
+        $difficulty = new $select_difficulty;
+
+        return $difficulty;
+    }
+
+    public static function displayDifficulties (array $difficulties)
+    {
+        for ($i = 0; $i < count ($difficulties); $i ++)
+        {
+            $difficulty = $difficulties[$i];
+
+            echo $i + 1, '. ', $difficulty, PHP_EOL;
+        }
     }
 }
 
@@ -143,4 +214,4 @@ function getSubclasses ($class)
     return $array;
 }
 
-Rounds::start();
+Rounds::prepare ();
